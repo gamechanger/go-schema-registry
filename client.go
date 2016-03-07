@@ -14,7 +14,6 @@ const (
 
 type Config struct {
 	Host string
-	Port int
 }
 
 type Interface interface {
@@ -118,5 +117,5 @@ func (c client) SchemaIsCompatibleWithSubjectVersion(subject, schema, version st
 }
 
 func (c client) url(path string) string {
-	return fmt.Sprintf("http://%s:%d%s", c.config.Host, c.config.Port, path)
+	return fmt.Sprintf("%s%s", c.config.Host, path)
 }

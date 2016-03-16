@@ -21,6 +21,7 @@ type Interface interface {
 	SchemaById(int) (string, error)
 	RegisterSubjectVersion(string, string) (int, error)
 	SchemaIsCompatibleWithSubjectVersion(string, string, string) (bool, error)
+	Subjects() ([]string, error)
 }
 
 type client struct {
@@ -39,7 +40,16 @@ func NewClient(c *Config) Interface {
 	return client{c}
 }
 
-func extractBody(r *http.Response) (respContents map[string]interface{}, err error) {
+func extractBodyMap(r *http.Response) (respContents map[string]interface{}, err error) {
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(b, &respContents)
+	return
+}
+
+func extractBodyList(r *http.Response) (respContents []string, err error) {
 	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return
@@ -60,7 +70,7 @@ func (c client) SchemaById(id int) (string, error) {
 	if resp.StatusCode != 200 {
 		return "", ResponseCodeError{resp.StatusCode}
 	}
-	respContents, err := extractBody(resp)
+	respContents, err := extractBodyMap(resp)
 	if err != nil {
 		return "", err
 	}
@@ -84,12 +94,23 @@ func (c client) RegisterSubjectVersion(subject, schema string) (int, error) {
 	if resp.StatusCode != 200 {
 		return 0, ResponseCodeError{resp.StatusCode}
 	}
-	respContents, err := extractBody(resp)
+	respContents, err := extractBodyMap(resp)
 	if err != nil {
 		return 0, err
 	}
 	id := respContents["id"].(float64)
 	return int(id), nil
+}
+
+func (c client) Subjects() ([]string, error) {
+	resp, err := http.Get(c.url("/subjects"))
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		return nil, ResponseCodeError{resp.StatusCode}
+	}
+	return extractBodyList(resp)
 }
 
 func (c client) SchemaIsCompatibleWithSubjectVersion(subject, schema, version string) (bool, error) {
@@ -108,7 +129,7 @@ func (c client) SchemaIsCompatibleWithSubjectVersion(subject, schema, version st
 	if resp.StatusCode != 200 {
 		return false, ResponseCodeError{resp.StatusCode}
 	}
-	respContents, err := extractBody(resp)
+	respContents, err := extractBodyMap(resp)
 	if err != nil {
 		return false, err
 	}

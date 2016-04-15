@@ -64,7 +64,7 @@ func (c client) Config() *Config {
 }
 
 func (c client) SchemaById(id int) (string, error) {
-	resp, err := http.Get(c.url(fmt.Sprintf("/schemas/ids/%d", id)))
+	resp, err := c.httpc.Get(c.url(fmt.Sprintf("/schemas/ids/%d", id)))
 	if err != nil {
 		return "", err
 	}
@@ -87,7 +87,7 @@ func (c client) RegisterSubjectVersion(subject, schema string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	resp, err := http.Post(c.url(fmt.Sprintf("/subjects/%s/versions", subject)),
+	resp, err := c.httpc.Post(c.url(fmt.Sprintf("/subjects/%s/versions", subject)),
 		postContentType, bytes.NewReader(b))
 	if err != nil {
 		return 0, err
@@ -104,7 +104,7 @@ func (c client) RegisterSubjectVersion(subject, schema string) (int, error) {
 }
 
 func (c client) Subjects() ([]string, error) {
-	resp, err := http.Get(c.url("/subjects"))
+	resp, err := c.httpc.Get(c.url("/subjects"))
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (c client) SchemaIsCompatibleWithSubjectVersion(subject, schema, version st
 	if err != nil {
 		return false, err
 	}
-	resp, err := http.Post(c.url(fmt.Sprintf("/compatibility/subjects/%s/versions/%s", subject, version)),
+	resp, err := c.httpc.Post(c.url(fmt.Sprintf("/compatibility/subjects/%s/versions/%s", subject, version)),
 		postContentType, bytes.NewReader(b))
 	if err != nil {
 		return false, err

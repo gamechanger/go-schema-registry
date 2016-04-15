@@ -26,6 +26,7 @@ type Interface interface {
 
 type client struct {
 	config *Config
+	httpc  *http.Client
 }
 
 type ResponseCodeError struct {
@@ -36,8 +37,8 @@ func (e ResponseCodeError) Error() string {
 	return fmt.Sprintf("Bad Response Code: %d", e.code)
 }
 
-func NewClient(c *Config) Interface {
-	return client{c}
+func NewClient(c *Config, httpc *http.Client) Interface {
+	return client{c, httpc}
 }
 
 func extractBodyMap(r *http.Response) (respContents map[string]interface{}, err error) {

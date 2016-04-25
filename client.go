@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 const (
@@ -38,6 +39,16 @@ func (e ResponseCodeError) Error() string {
 }
 
 func NewClient(c *Config, httpc *http.Client) Interface {
+	if httpc == nil {
+		httpc = &http.Client{
+			Transport: &http.Transport{
+				MaxIdleConnsPerHost:   5,
+				ResponseHeaderTimeout: 2 * time.Second,
+			},
+
+			Timeout: 5 * time.Second,
+		}
+	}
 	return client{c, httpc}
 }
 
